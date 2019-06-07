@@ -1,20 +1,18 @@
 ## Acknowledgments
 
-We thank Michael Wu for designing and iterating on our playground environment. We would also like to thank Karol Hausmann, Ben Poole, Eric Jang for many fruitful discussions on the design and training of our model.
-
 This article was prepared using the [Distill](https://distill.pub) [template](https://github.com/distillpub/template).
 
 <h3 id="citation">Citation</h3>
 
 For attribution in academic contexts, please cite this work as
 
-<pre class="citation short">Lynch et al., "Learning Latent Plans from Play", 2019.</pre>
+<pre class="citation short">Pirk et al., "Online Object Representations with Contrastive Learning", 2019.</pre>
 
 BibTeX citation
 
-<pre class="citation long">@article{lynch2019play,
-  title={Learning Latent Plans from Play},
-  author={Lynch, Corey and Khansari, Mohi and Xiao, Ted and Kumar, Vikash and Tompson, Jonathan and Levine, Sergey and Sermanet, Pierre},
-  journal={arXiv preprint arXiv:1903.01973},
+<pre class="citation long">@article{PirkOnlineObjects2019,
+  title={Online Object Representations with Contrastive Learning},
+  author={Pirk, S\"oren and Khansari, Mohi and Bai, Yunfei and Lynch, Corey and Sermanet, Pierre},
+  journal={},
   year={2019}
 }</pre>
