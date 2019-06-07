@@ -10,7 +10,7 @@ The main contributions of this paper are:
 An interesting and perhaps surprising finding of this approach is that given a limited set of objects, object correspondences will naturally emerge when using contrastive learning without requiring explicit positive pairs.
 Videos illustrating online object adaptation and robotic pointing are available as supplementary material.
 
-[here]: https://learning-from-play.github.io
+[here]: https://online-objects.github.io
 
 <!-- <div class="figure">
 <video class="b-lazy" data-src="assets/mp4/lmp_8tasks960x400.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; width: 100%;"></video>
@@ -43,10 +43,10 @@ Latent plan space is shaped by two stochastic encoders: plan recognition and pla
 \end{figure} -->
 
 <div class="figure">
-<img src="assets/fig/teaser_views_v3.jpg" style="margin: 0; width: 100%;"/>
-<!-- <video class="b-lazy" data-src="assets/mp4/lmp_8tasks960x400.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; width: 100%;"></video> -->
+<img src="assets/fig/teaser_chart_v2.svg" style="margin: 0; width: 100%;"/>
+<video class="b-lazy" data-src="assets/mp4/work_bench_consecutive_1.mp4" type="video/mp4" autoplay muted playsinline loop style="display: block; width: 100%;"></video>
 <figcaption>
-Figure 1: the longer our model looks at objects in a video, the lower the object identification error.} Top: example frames of a work bench video along with the detected objects. Bottom: result of online training on the same video. Our model self-supervises object representations as the video progresses and converges to 2% error while the offline baseline remains at 52% error.
+Figure 1: the longer our model looks at objects in a video, the lower the object identification error. Top: example frames of a work bench video along with the detected objects. Bottom: result of online training on the same video. Our model self-supervises object representations as the video progresses and converges to 2% error while the offline baseline remains at 52% error.
 </figcaption>
 </div>
 
@@ -57,7 +57,7 @@ Online self-supervision is key to robustness and adaptability and arguably a pre
 
 
 In this work we focus on situated settings (i.e. an agent is embedded in an environment), which allows us 
-to use temporal continuity as the basis for self-supervising correspondences between different views of objects. We present a self-supervised method that learns representations to disentangle perceptual and semantic object attributes such as class, function, and color. We automatically acquire training data by capturing videos with a real robot; a robot base moves around a table to capture objects in various arrangements. Assuming a pre-existing objectness detector, we extract objects from random frames of a scene containing the same objects, and let a metric learning system decide how to assign positive and negative pairs of embeddings. Representations that generalize across objects naturally emerge despite not being given groundtruth matches. Unlike previous methods, we abstain from employing additional self-supervisory training signals such as depth or those used for tracking. The only input to the system are monocular videos. This simplifies data collection and allows our embedding to integrate into existing end-to-end learning pipelines. We demonstrate that a trained Object-Contrastive Network~(OCN) embedding allows us to reliably identify object instances based on their visual features such as color and shape. Moreover, we show that objects are also organized along their semantic or functional properties. For example, a cup might not only be associated with other cups, but also with other containers like bowls or vases. 
+to use temporal continuity as the basis for self-supervising correspondences between different views of objects. We present a self-supervised method that learns representations to disentangle perceptual and semantic object attributes such as class, function, and color. We automatically acquire training data by capturing videos with a real robot; a robot base moves around a table to capture objects in various arrangements. Assuming a pre-existing objectness detector, we extract objects from random frames of a scene containing the same objects, and let a metric learning system decide how to assign positive and negative pairs of embeddings. Representations that generalize across objects naturally emerge despite not being given groundtruth matches. Unlike previous methods, we abstain from employing additional self-supervisory training signals such as depth or those used for tracking. The only input to the system are monocular videos. This simplifies data collection and allows our embedding to integrate into existing end-to-end learning pipelines. We demonstrate that a trained Object-Contrastive Network (OCN) embedding allows us to reliably identify object instances based on their visual features such as color and shape. Moreover, we show that objects are also organized along their semantic or functional properties. For example, a cup might not only be associated with other cups, but also with other containers like bowls or vases. 
 
 Figure 1 shows the effectiveness of online self-supervision: by training on randomly selected frames of a continuous video sequence (top) OCN can adapt to the present objects and thereby lower the object identification error. While the supervised baseline remains at a constant high error rate (52.4%), OCN converges to a 2.2\% error. The graph (bottom) shows the object identification error obtained by training on  progressively longer sub-sequences of a 200 seconds video. 
 
@@ -73,143 +73,94 @@ The key contributions of this work are:
 
 ## Method
 
-<!-- **Play data**&nbsp;&nbsp;
+We propose a model called Object-Contrastive Network (OCN) trained with a metric learning loss (Figure 2). The approach is very simple: 
+1) extract object bounding boxes using a general off-the-shelf objectness detector <dt-cite key="NIPS2015_5638"></dt-cite>, 
+2) train a deep object model on each cropped image extracted from any random pair of frames from the video, using the following training objective: nearest neighbors in the embedding space are pulled together from different frames while being pushed away from the other objects from any frame (using n-pairs loss <dt-cite key="NIPS2016_6200"></dt-cite>). This does not rely on knowing the true correspondence between objects. 
 
-Consider play data, an unbounded sequence of states and actions corresponding to voluntary, repeated, non-stereotyped object interaction between an agent and it's environment.
-
-$\mathcal{D} = \{(s_1, a_1), (s_2, a_2), \cdots, (s_T, a_T)\}$
-
-In our experiments, we define play data as the states and actions logged during human play teleoperation of a robot in a playground environment. Find an example of such data in Figure 3.
+The fact that this works at all despite not using any labels might be surprising. One of the main findings of this paper is that given a limited set of objects, object correspondences will naturally emerge when using metric learning. One advantage of self-supervising object representation is that these continuous representations are not biased by or limited to a discrete set of labels determined by human annotators. We show these embeddings discover and disentangle object attributes and generalize to previously unseen environments.
 
 <div class="figure">
-<img src="assets/fig/lmp_inference4.svg" style="margin: 0; width: 60%;"/>
+<img src="assets/fig/overview5.svg" style="margin: 0; width: 100%;"/>
 <figcaption>
-Figure 5: 
-Task-agnostic policy inference.
-The policy is conditioned on a latent plan which is sampled once from a plan distribution (inferred from the current and goal states).
-The policy is also conditioned on the current state as well as the goal state desired by the user.
-</figcaption>
+Figure2: Object-Contrastive Networks (OCN): by attracting nearest neighbors in embedding space and repulsing others using metric learning, continuous object representations naturally emerge. In a video collected by a robot looking at a table from different viewpoints, objects are extracted from random pairs of frames. Given two lists of objects, each object is attracted to its closest neighbor while being pushed against all other objects. Noisy repulsion may occur when the same object across viewpoint is not matched against itself. However the learning still converges towards disentangled and semantically meaningful object representations. </figcaption>
 </div>
 
-**Play-LMP**&nbsp;&nbsp;
-As described earlier, play is characterized as repeated object interaction that cannot be rigidly stereotyped. In this way, play can be expected to contain multiple ways of achieving the same outcome. An operator playing in an environment with a door isn't looking for the most efficient way to open it repeatedly. They will rather, through the course of curiosity or boredom, naturally experiment with the many ways the door can be opened--fast, slow, by grasping the top of the handle, the bottom of the handle etc. Intuitively, there are many distinct behaviors that might take an agent from a particular initial state to a particular final state.
-The presence of multiple action trajectories for the same (current state, goal state) pair presents a challenge to models seeking to learn goal-conditioned control in the form of counteracting action labels.
-This can be considered a multimodal representation learning problem: policies must be powerful enough to model all possible high-level behaviors that lead to the same goal outcome.
+We propose a self-supervised approach to learn object representations for the following reasons: (1) make data collection simple and scalable, (2) increase autonomy in robotics by continuously learning about new objects without assistance, (3) discover continuous representations that are richer and more nuanced than the discrete set of attributes that humans might provide as supervision which may not match future and new environments. 
+All these objectives require a method that can learn about objects and differentiate them without supervision. To bootstrap our learning signal we leverage two assumptions: (1) we are provided with a general objectness model so that we can attend to individual objects in a scene, (2) during an observation sequence the same objects will be present in most frames (this can later be relaxed by using an approximate estimation of ego-motion). Given a video sequence around a scene containing multiple objects, we randomly select two frames $I$ and $\hat{I}$ in the sequence and detect the objects present in each image. Let us assume $N$ and $M$ objects are detected in image $I$ and $\hat{I}$, respectively. Each of the $n$-th and $m$-th cropped object images are embedded in a low dimensional space, organized by a metric learning objective. Unlike traditional methods which rely on human-provided similarity labels to drive metric learning, we use a self-supervised approach to mine synthetic similarity labels.
 
-With this motivation in mind, we introduce Play-LMP (play-supervised latent motor plans), a hierarchical latent variable model for learning goal-conditioned control.
-Play-LMP simultaneously learns 1) *reusable latent plan representations* from play data and 2) *plan and goal-conditioned policies*, capable of decoding learned latent plans into actions to reach user-specified goal states.
-We call the representation space learned by Play-LMP "latent plan space". The intent is that individual points in the space correspond to behaviors recognized during play that got the agent from some initial state to some final state. We call points in the space "latent plans" because a single point should carry the necessary information for how to act, should it find itself at some point in the future in a similar initial state, trying to reach a similar goal state. That is, the embedding space is designed for efficient reuse.
+**Objectness Detection:** To detect objects, we use Faster-RCNN <dt-cite key="NIPS2016_6200"></dt-cite> trained on the COCO object detection dataset <dt-cite key="10.1007/978-3-319-10602-1_48"></dt-cite>. Faster-RCNN detects objects in two stages: first generate class-agnostic bounding box proposals of all objects present in an image (Figure 1), second associate detected objects with class labels. We use OCN to discover object attributes, and only rely on the first *objectness* stage of Faster-R-CNN to detect object candidates. 
 
-Local regions of plan space should correspond to distinct solutions to the same task. In this way, we aim for Play-LMP to explicitly model the "multiple solutions'' problem in play data, relieving the policy of that effort. That is, a policy conditioned on current state, goal state, and *latent plan* only needs to learn how to follow the specific plan. Ideally, latent plans provide *disambiguating* information to the policy, turning a multimodal representation learning problem into a unimodal one. Hence, we aim for Play-LMP to recognize a repertoire of reusable behaviors simply by passively recalling play experience, then invoke them at test time to solve user-specified tasks.
-Finally we note that although Play-LMP was designed to ameliorate multimodality issues in play data, it is a general self-supervised control learning method that could in principle operate on any collection of state-action sequences.
+**Metric Loss for Object Disentanglement:** We denote a cropped object image by $x \in \mathcal{X}$ and compute its embedding based on a convolutional neural network $f(x): \mathcal{X} \rightarrow K$.
+Note that for simplicity we may omit $x$ from $f(x)$ while $f$ inherits all superscripts and subscripts. Let us consider two pairs of images $I$ and $\hat{I}$ that are taken at random from the same contiguous observation sequence. Let us also assume there are $n$ and $m$ objects detected in $I$ and $\hat{I}$ respectively. We denote the $n$-th and $m$-th objects in the images $I$ and $\hat{I}$ as $x_n^{I}$ and $x_m^{\hat{I}}$, respectively. We compute the distance matrix $D_{n,m} = \sqrt{(f_{n}^{I} - f_{m}^{\hat{I}}})^2,~n\in1..N,~m\in1..M$. For every embedded *anchor* $f_{n}^{I},~n\in1..N$, we select a *positive* embedding $f_{m}^{\hat{I}}$ with minimum distance as *positive*: $f_{n+}^{\hat{I}} = argmin(D_{n,m})$. 
 
-Concretely, our training method consists of three modules:
-* *Plan Recognizer* $\Phi$: A stochastic sequence encoder that takes a randomly sampled play sequence $\tau$ as input, mapping it to a distribution in latent plan space $q_{\Phi}(z|\tau)$. The motivation of this encoder is to act as "recognition" network, identifying which region of latent plan space the behavior executed during the play sequence belongs to. $\Phi$ is used only at training time to extract latent plan representations from the unlabeled data. This can be interpreted as a learned variational posterior over latent plan states.
-* *Plan Proposer* $\Psi$: A stochastic encoder taking the initial state $s_i$ and final state $s_g$ from the same sampled sequence $\tau$, outputting distribution $p_{\Psi}(z|s_i, s_g)$. The goal of this encoder is to represent the full distribution over behaviors that connect the current state to the goal state, potentially capturing multiple distinct solutions. This can be interpreted as a learned conditional prior.
-* *Goal and plan conditioned policy* $\pi$: A policy conditioned on the current state $s_t$, goal state $s_g$, and a latent plan $z$ sampled from $\Phi$, trained to reconstruct the actions the agent took during play to reach the goal state from the initial state, as described by inferred plan $z$.
-
-We now describe each of the modules in detail and the losses used to train them. For a visual description of the training procedure, see Figure 2.
-
-**Plan Recognizer**&nbsp;&nbsp;
-Consider a sequence of state action pairs $\tau$ of window length $\kappa$ sampled at random from the play dataset $\mathcal{D}$:
-
-$\tau = \{(s_{k:k+\kappa}, a_{k:k+\kappa})\} \thicksim \mathcal{D}$
-
-We define a stochastic sequence encoder, $\Phi$, referred to throughout the paper as the "plan recognizer", which takes as input $\tau$ and outputs a distribution over latent plans. Intuitively, the idea is for the encoder not to learn to recognize plan codes as single points, but as
-ellipsoidal regions in latent space, forcing the codes
-to fill the space rather than memorizing individual training data. We parameterize our sequence encoder $\Phi$ with a bidirectional recurrent neural network with parameters $\theta_\Phi$, which produces means and variances in latent plan space from $\tau$.
-
-$\mu_\Phi, \sigma_\Phi = \Phi(\tau, \theta_\Phi)$
-
-As is typical with training VAEs, we assume the encoder has a diagonal covariance matrix, i.e. $z \sim N(\mu_\Phi, diag(\sigma_\Phi^2))$.
-Individual latent plans $z$ are sampled from this distribution at training time via the "reparameterization trick" (<dt-cite key="kingma2013auto"></dt-cite>) and handed to a latent plan and goal conditioned action decoder (described in the next section) to be decoded into reconstructed actions. The sequence encoder is then trained with action reconstruction loss $\mathcal{L}_{\pi}$ and the self-supervised
-While we could in principle use the sequence encoder at test time to perform full sequence imitation, in this work we restrict our attention to tasks specified by individual user-provided goal states. Therefore, the sequence encoder is only used at training time to help learn a latent plan space, and is discarded at test time.
-
-**Plan Proposer**&nbsp;&nbsp;
-We also define a plan proposal network, $\Psi$, which maps initial state $s_i$ and goal state $s_g$ to a distribution over latent plans. The goal of this network is to output the full distribution of possible plans or behaviors that an agent could execute to get from a particular initial state to a particular goal state. We parameterize the plan encoder $\Psi$ with a multi-layer neural network with parameters $\theta_\Psi$, which produces means $\mu_\Psi$ and variances $\sigma_\Psi$ in latent plan space from the $s_i$ to $s_g$. For simplicity, we choose a unimodal multivariate Gaussian to represent distributions in latent plan space; nothing in principle stops us from using more complicated distributions. 
-
-$\mu_\Psi, \sigma_\Psi = \Psi(s_i, s_g; \theta_\Psi)$
-
-Similarly we assume the plan encoder has a diagonal covariance matrix, i.e. $z \thicksim \mathcal{N}(\mu_\Psi, diag(\sigma_\Psi^2))$. Note that $\Psi$ is a stochastic encoder, which outputs a distribution in the same latent plan space as $\Phi$. Both $\Phi$ and $\Psi$ are trained jointly by minimizing the KL divergence between the two distributions:
-
-$\mathcal{L}_{KL} = KL\Big(\mathcal{N}(z|\mu_\Phi, diag(\sigma_\Phi^2)) ~||~ \mathcal{N}(z|\mu_\Psi,diag(\sigma_\Psi^2)) \Big)$
-
-Intuitively, $\mathcal{L}_{KL}$ forces the plan distribution output by the planner $\Psi$ to place high probability on actual latent plans recognized during play. Simultaneously it enforces a regular geometry over codes output by the plan recognizer $\Phi$, allowing plausible plans to be sampled at test time from regions of latent space that have high probability under the conditional prior $\Psi$.
-
-**Task agnostic, goal and latent plan conditioned policy**&nbsp;&nbsp;
-Here we describe how we train our task-agnostic policy to achieve user-specified goals. Our policy $\pi$, parameterized by $\theta_\pi$, is an RNN that takes as input current state $s_t$, goal state $s_g$, and a sampled latent plan $z$, and outputs action $a_t$.
-The policy is trained via maximum likelihood to reconstruct the actions taken during the sequence sampled from play.
-To obtain action predictions at training time, we sample $z$ once from the distribution output by $\Phi$ (which has been conditioned on the entire state-action sequence $\tau$), then for each timestep $t$ in the sequence, we compute actions $a_t$ from inputs $s_t$, $s_g$, and $z$. The loss term $\mathcal{L}_{\pi}$ corresponding to the action prediction is determined as follows:
-
-$\mathcal{L}_\pi = -\frac{1}{\kappa} \sum_{t=k}^{k+\kappa} log\big(\pi(a_t | s_t, s_g, z)\big)$
-
-Note that we can optionally also have the decoder output state predictions, and adds another loss term penalizing a state reconstruction loss.
-
-As mentioned earlier, at test time $\Phi$ is discarded and we sample $z$ from the distribution output by plan proposal network $\Psi$, conditioned on $s_t$, $s_g$ as described in Section "Plan Proposal".
-The motivation for this architecture is to relieve the policy from having to representing multiple valid action trajectory solutions implicitly. Since $\Phi$ processes the full state-action sequence $\tau$ to be reconstructed, a plan sampled from $\Phi$ should provide *disambiguating information* to the policy at training time, converting a multimodal problem (learn every plan) to a unimodal one (learn to decode this specific plan).
-
-**Full objective**&nbsp;&nbsp;
-Following <dt-cite key="higgins2016beta">Higgins et al.</dt-cite>, we introduce a weight $\beta$, controlling $\mathcal{L}_{KL}$'s contribution to the total loss. Setting $\beta$ $<$ 1 was sufficient to avoid "posterior collapse" (<dt-cite key="DBLP:journals/corr/BowmanVVDJB15">Bowman et al.</dt-cite>), a commonly identified problem in VAE training in which an over-regularized model combined with a powerful decoder tends to ignores the latent variable $z$. The full Play-LMP training objective is:
+Given a batch of (*anchor*, *positive*) pairs $\{(x_i, x_i^+)\}_{i=1}^N$, the n-pair loss is defined as follows <dt-cite key="NIPS2016_6200"></dt-cite>: 
 
 
-$\mathcal{L}_{LMP} = \frac{1}{\kappa} \mathcal{L}_\pi + \beta \mathcal{L}_{KL}$
+$\mathcal{L}_{N-pair}\big(\{(x_i, x_i^+)\}_{i=1}^N;f\big) = 
+\frac{1}{N} \sum_{i=1}^N log \Big(1 + \sum_{j \neq i} exp(f_i^\intercal f_j^+ - f_i^\intercal f_i^+) \Big)$
 
-We describe the full Play-LMP minibatch training pseudocode in Algorithm 1.
+The loss learns embeddings that identify ground truth (anchor, positive)-pairs from all other (anchor, negative)-pairs in the same batch. It is formulated as a sum of softmax multi-class cross-entropy losses over a batch, encouraging the inner product of each (anchor, positive)-pair ($f_i$, $f_i^+$) to be larger than all (anchor, negative)-pairs ($f_i$, $f_{j\neq i}^+$). The final OCN training objective over a sequence is the sum of npairs losses over all pairs of individual frames:
+
+$\mathcal{L}_{OCN} = \mathcal{L}_{N-pair}\big(\{(x_n^{I}, x_{n+}^{\hat{I}})\}_{n=1}^N;f\big) + \mathcal{L}_{N-pair}\big(\{(x_m^{\hat{I}}, x_{m+}^{I})\}_{m=1}^M;f\big)$
+
+**Architecture and Embedding Space:** OCN takes a standard ResNet50 architecture until layer *global\_pool* and initializes it with ImageNet pre-trained weights. We then add three additional ResNet convolutional layers and a fully connected layer to produce the final embedding. The network is trained with the n-pairs metric learning loss as discussed in Section "Metric Loss for Object Disentanglement". Our architecture is depicted in Figure 3.
 
 <div class="figure">
-<img src="assets/fig/algo1.png" style="margin: 0; width: 80%;"/>
+<img src="assets/fig/models2.svg" style="margin: 0; width: 100%;"/>
+<figcaption>
+Figure 3: Models and baselines: for comparison purposes all models evaluated in Section "Results" share the same architecture of a standard ResNet50 model followed by additional layers. While the architectures are shared, the weights are not across models. While the unsupervised model (left) does not require supervision labels, the 'softmax' baseline as well as the supervised evaluations (right) use attributes labels provided with each object. We evaluate the quality of the embeddings with two types of classifiers: linear and nearest neighbor.</figcaption>
 </div>
 
-**A connection to conditional variational autoencoder**&nbsp;&nbsp;
-Play-LMP can be interpreted as a conditional variational sequence to sequence autoencoder <dt-cite key="NIPS2015_5775"></dt-cite>, autoencoding random experiences extracted from play memory through a latent plan space. In the framework of variational inference, we can view the plan recognizer $\Phi$ as a *learned posterior recognition model* $q_\Phi(z|\tau)$. Additionally, we can view the plan proposal network $\Psi$ as a *learned conditional prior* $p_\Psi(z|s_t,s_g)$. The full objective is similar to <dt-cite key="higgins2016beta">Higgins et al.</dt-cite>.
+**Object-centric Embeding Space:** By using multiple views of the same scene and by attending to individual objects, our architecture allows us to differentiate subtle variations of object attributes. Observing the same object across different views facilitates learning invariance to scene-specific properties, such as scale, occlusion, lighting, and background, as each frame exhibits variations of these factors. The network solves the metric loss by representing object-centric attributes, such as shape, function, or color, as these are consistent for (anchor, positive)-pairs, and dissimilar for (anchor, negative)-pairs.  
 
-**Zero-shot control at test time**&nbsp;&nbsp;
-At test time, we use the trained plan proposer $\Psi$, and plan and goal-conditioned policy $\pi$ to achieve *user-specified* manipulation goals.
-
-The inputs at test time are the conventional inputs to a goal-conditioned control problem, the current environment state $s_i$ and goal state $s_g$.
-For example $s_i$ could be the end effector resting over the table, and $s_g$ could be the end effector pressing the green button. Together, ($s_i$, $s_g$) specify a test time manipulation task.
-
-Our trained agent achieves goal-conditioned control as follows: 1) feed $s_i$ and $s_g$ into its trained plan proposal network $\Psi$, which outputs a distribution over all learned latent plans that might connect $s_i$ to $s_g$. 2) sample a single latent plan $z$,
-3) hand ($s_i$, $s_g$, $z$) to plan and goal-conditioned policy $\pi$, outputting a distribution over low-level actions. 4) Sample an action, $a_t$, move to the next state $s_t$, then repeat 3). 
-
-Note that during test time rollouts, we keep the $z$ input to the policy fixed over $\kappa$ steps (matching the planning horizon it was trained with). That is, it is free to replan using the current state $s_i$ and fixed goal state $s_g$ every $\kappa$ steps. In our experiments, our agent gets observations and takes low-level actions at 30hz. We set $\kappa$ to 32, meaning that the agent replans at roughly $1$hz. See Figure 5 for details.
-
-**Play-GCBC**&nbsp;&nbsp;
-We also train a play-supervised goal conditioned policy in a similar fashion to Play-LMP, but with no explicit latent plan inference. We denote this policy by $\pi_{GCBC}$ and parameterized it by $\theta_{GCBC}$.That is, we train an RNN to maximize the likelihood of an action sequence sampled from play data, given the corresponding state sequence. The policy is conditioned on current state $s_t$ and goal state $s_g$ as before. We call this \gcbc (play-supervised goal-conditioned behavioral cloning), and describe the minibatch training pseudo-code in Algorithm 2.
-
-<div class="figure">
-<img src="assets/fig/algo2.png" style="margin: 0; width: 80%;"/>
-</div> -->
+**Discussion:** One might expect that this approach may only work if it is given an initialization so that matching the same object across multiple frames is more likely than random chance. While ImageNet pretraining certainly helps convergence as shown in Table 3, it is not a requirement to learn meaningful representations as shown in Section "Random Weights". When all weights are random and no labels are provided, what can drive the network to consistently converge to meaningful embeddings? We estimate that the co-occurrence of the following hypotheses drives this convergence: (1) objects often remains visually similar to themselves across multiple viewpoints, (2) limiting the possible object matches within a scene increases the likelihood of a positive match, (3) the low-dimensionality of the embedding space forces the model to generalize by sharing abstract features across objects, (4) the smoothness of embeddings learned with metric learning facilitates convergence when supervision signals are weak, and (5) occasional true-positive matches (even by chance) yield more coherent gradients than false-positive matches which produce inconsistent gradients and dissipate as noise, leading over time to an acceleration of consistent gradients and stronger initial supervision signal.
 
 ## Experiments
 
+**Online Results:** we quantitatively evaluate the online adaptation capabilities of our model through the object identification error of entirely novel objects. In Figure 1 we show that a model observing objects for a few minutes from different angles can self-teach to identify them almost perfectly while the offline supervised approach cannot. OCN is trained on the first 5, 10, 20, 40, 80, and 160 seconds of the 200 seconds video, then evaluated on the identification error of the last 40 seconds of the video for each phase. The supervised offline baseline stays at a 52.4% error, while OCN improves down to 2% error after 80s, a 25x error reduction.
+
+**Robotic Experiments:** here we let a robot collect its own data by looking at a table from multiple angles (Figure 2 and Figure 5).
+It then trains itself with OCN on that data, and is asked to point to objects similar to the one presented in front of it. Objects can be similar in terms of shape, color or class. If able to perform that task, the robot has learned to distinguish and recognize these attributes entirely on its own, from scratch and by collecting its own data. We find in Table 7 that the robot is able to perform the pointing task with 72% recognition accuracy of 5 classes, and 89% recognition accuracy of the binary is-container attribute.
+
+**Offline Analysis:** to analyze what our model is able to disentangle, we quantitatively evaluate performance on a large-scale synthetic dataset with 12k object models (e.g. Figure 10), as well as on a real dataset collected by a robot and show that our unsupervised object understanding generalizes to previously unseen objects. In Table 3 we find that our self-supervised model closely follows its supervised equivalent baseline when trained with metric learning. As expected the cross-entropy/softmax supervised baseline approach performs best and establishes the error lower bound while the ResNet50 baseline are upper-bound results.
+
+## Data Collection and Training
+
+We generated three datasets of real and synthetic objects for our experiments. For the real data we arrange objects in table-top configurations and use frames from continuous camera trajectories. The labeled synthetic data is generated from renderings of 3D objects in a similar configuration. Details about the datasets are reported in Table 4.
+
+**Real Data for Online Training:** for the online adaptation experiment, we captured videos of table-top object configurations in the 5 environments (categories): kids room, kitchen, living room, office, and work bench (Figures 1, 4, and 6). We show objects common to each environment (e.g. toys for kids room, tools for work bench) and arrange them randomly; we captured 3 videos for each environment and used 75 unique objects. To allow capturing the objects from multiple view points we use a head-mounted camera and interact with the objects (e.g. turning or flipping them). Additionally, we captured 5 videos of more challenging object configurations (referred to as "challenging") with cluttered objects or where objects are not permanently in view. Finally, we selected 5 videos from the Epic-Kitchens <dt-cite key="Damen2018EPICKITCHENS"></dt-cite> dataset to show that OCN can also operate on even more realistic video sequences. 
+
+From all these videos we take the first 200 seconds and sample the sequence with 15 FPS to extract 3,000 frames. We then use the first 2,400 frames (160s) for training OCN and the remaining 600 frames (40s) for evaluation. We manually select up to 30 reference objects (those we  interacted with) as cropped images for each video in order of their appearance from the beginning of the video (Figure 14). Then we use object detection to find the bounding boxes of these objects in the video sequence and manually correct these boxes (add, delete) in case object detection did not identify an object. This allows us to prevent artifacts of the object detection to interfere with the evaluation of OCN.
 
 
-## Discussion
+<div class="figure">
+<img src="assets/fig/online_dataset.jpg" style="margin: 0; width: 100%;"/>
+<figcaption>
+Figure 4: Six of the environments we used for our self-supervised online experiment. Top: living room, office, kitchen. Bottom: one of our more challenging scenes, and two examples of the Epic-Kitchens.</figcaption>
+</div>
+
+**Automatic Real Data Collection:** to explore the possibilities of a system entirely free of human supervision we automated the real world data collection by using a mobile robot equipped with an HD camera (Figure 11). For this dataset we use 187 unique object instances spread across six categories including 'balls', 'bottles & cans', 'bowls', 'cups & mugs', 'glasses', and 'plates'.  Table 5 provides details about the number of objects in each category and how they are split between training, test, and validation. Note that we distinguish between cups & mugs and glasses categories based on whether it has a handle. Figure 5 shows our entire object dataset. 
+
+<div class="figure">
+<img src="assets/fig/dataset_v2.jpg" style="margin: 0; width: 100%;"/>
+<figcaption>
+Figure 5: We use 187 unique object instance in the real world experiments: 110 object for training (left), 43 objects for test (center), and 34 objects for validation (right). The degree of similarity makes it harder to differentiate these objects.</figcaption>
+</div>
+
+At each run, we place about 10 objects on the table and then trigger the capturing process by having the robot rotate around the table by 90 degrees (Figure 11). On average 130 images are captured at each run. We select random pairs of frames from each trajectory for training OCN. We performed 345, 109, and 122 runs of data collection for training, test, and validation dataset. In total 43,084 images were captured for OCN training and 15,061 and 16,385 were used for test and validation, respectively.
 
 
-## Related Work
+**Synthetic Data Generation:** to generate diverse object configurations we use 12 categories (airplane, car, chair, cup, bottle, bowl, guitars, keyboard, lamp, monitor, radio, vase) from  ModelNet<dt-cite key="WuSKYZTX15"></dt-cite>. The selected categories cover around 8k models of the 12k models available in the entire dataset. ModelNet provides the object models in a 80-20 split for training and testing. We further split the testing data into models for test and validation, resulting in a 80-10-10 split for training, validation, and test. For validation purposes, we manually assign each model labels describing the semantic and functional properties of the object, including the labels 'class', 'has lid', 'has wheels', 'has buttons', 'has flat surface', 'has legs', 'is container', 'is sittable', 'is device'.
 
-<!-- Robotic learning methods generally require some form of supervision to acquire behavioral skills--conventionally, this supervision either consists of a cost or reward signal, as in reinforcement learning <dt-cite key="sutton2018reinforcement,kober2013reinforcement,deisenroth2013survey"></dt-cite>, or demonstrations, as in imitation learning <dt-cite key="pastor2009learning,argall2009survey"></dt-cite>. However, both of these sources of supervision require considerable human effort to obtain: reward functions must be engineered by hand, which can be highly non-trivial in environments with natural observations, and demonstrations must be provided manually for each task. When using high-capacity models, hundreds or even thousands of demonstrations may be required for each task (<dt-cite key="DBLP:journals/corr/abs-1710-04615,DBLP:journals/corr/RahmatizadehABL17,rajeswaran2017learning,DBLP:journals/corr/DuanASHSSAZ17"></dt-cite>.
-In this paper, we instead aim to learn general-purpose policies that can flexibly accomplish a wide range of user-specified tasks, using data that is not task-specific and is easy to collect. Our model can in principle use *any past experience for training, but the particular data collection approach we used is based on human-provided play data.
+We randomly define the number of objects (up to 20) in a scene  (Figure 12). Further, we randomly define the positions of the objects and vary their sizes, both so that they do not intersect. Additionally, each object is assigned one of eight predefined colors. We use this setup to generate 100K scenes for training, and 50K scenes for each, validation and testing. For each scene we generate 10 views and select random combination of two views for detecting objects. In total we produced 400K views (200K pairs) for training and 50K views (25K pairs) for each, validation and testing.  
 
-In order to distill non-task-specific experience into a general-purpose policy, we set up our model to be conditioned on the user-specified goal. Goal conditioned policies have been explored extensively in the literature for reinforcement learning <dt-cite key="kaelbling1993learning,pong2018temporal,nair2018visual,schaul2015universal,andrychowicz2017hindsight,DBLP:journals/corr/abs-1712-00948,DBLP:journals/corr/abs-1711-06006,DBLP:journals/corr/CabiCHDWF17,DBLP:journals/corr/SukhbaatarKSF17"></dt-cite>,
-as well as for control via inverse models <dt-cite key="DBLP:journals/corr/AgrawalNAML16,DBLP:journals/corr/NairCAIAML17,christiano2016transfer,DBLP:journals/corr/abs-1805-01954"></dt-cite>.
-Learning powerful goal-conditioned policies with reinforcement learning can produce policies with good long-horizon performance, but is difficult in terms of both the number of samples required and the need for extensive on-policy exploration <dt-cite key="pinto2017asymmetric,pinto2015supersizing,levine2017grasping,ebert2017videoprediction,finn2016visualforesight,lange2012autonomous,lillicrap2015continuous, levine2016gps"></dt-cite>.
-We instead opt to train our model with supervised learning. This introduces a major challenge, since the distribution over actions that can reach a temporally distant goal from the current state based on the data can be highly multimodal. Even single-task imitation models of this sort must contend with multi-modality <dt-cite key="rahmatizadeh2018vision"></dt-cite>, and goal-conditioned models are typically restricted to short and relatively simple tasks, such as pushing <dt-cite key="DBLP:journals/corr/AgrawalNAML16"></dt-cite>, repositioning rope <dt-cite key="DBLP:journals/corr/NairCAIAML17"></dt-cite>, or short-distance navigation <dt-cite key="DBLP:journals/corr/pathakICLR18zeroshot"></dt-cite>. We tackle substantially more temporally extended tasks, using our proposed latent plan model, which models the multimodality explicitly using a hierarchical latent variable model.
+**Training:** OCN is trained based on two views of the same synthetic or real scene. We randomly pick two frames of a video sequence and detect objects to produce two sets of cropped images. The distance matrix $D_{n,m}$ (Section "Metric Loss for Object Disentanglement") is constructed based on the individually detected objects for each of the two frames. The object detector was not specifically trained on any of our datasets. 
 
-Our work on learning latent plans is most related to <dt-cite key="hausman2018learning"></dt-cite>, who present a method for reinforcement learning of closely related manipulation skills, parameterized via an explicit skill embedding space. They assume a fixed set of initial tasks at training time, with access to accompanying per task reward functions to drive policy and embedding learning.
-In contrast, our method relies on unsegmented, unlabeled play data with no predefined task training distribution.
-It additionally requires no reward function, and performs policy training via supervised learning, yielding orders of magnitude greater sample efficiency. Finally, they generalize to new skills by freezing the learned policy and learning a new mapping to the embedding space, whereas Play-LMP generalizes to new tasks simply by feeding a new current and goal state pair to the trained plan proposal network.
 
-Our self-supervised learning method for learning latent plans relates to other works in self-supervised representation learning from sequences 
-<dt-cite key="wang2015unsupervised,misra2016shuffle,Sermanet2017TCN"></dt-cite>.
-It decouples high and low level planning to achieve better task generalization, a strategy well studied in the literature. For example in <dt-cite key="Sermanet2009Multirange"></dt-cite>, they run a simple low-level planner at high-frequency while running a more sophisticated higher-level planner at low-frequency. This resulted in a more responsive low-level controller, resulting in fewer collisions, in an off-road navigation task, while the long-term planner could plan better routes. Additionally, the lower-frequency long-term planning meant that paths were more stable and oscillations were reduced.
+## Experimental Results
 
-Lastly, our work is related to prior research on few-shot learning of skills from demonstrations <dt-cite key="finn2017one,wang2017robust,DBLP:journals/corr/JamesDJ17,DBLP:journals/corr/abs-1806-10166,DBLP:journals/corr/DuanASHSSAZ17"></dt-cite>.
-While our method does not require demonstrations to perform new tasks--only the goal state--it can readily incorporate demonstrations simply by treating each subsequent frame as a goal. In contrast to prior work on few-shot learning from demonstration that require a meta-training phase <dt-cite key="finn2017one"></dt-cite>, our method does not require any expensive task-specific demonstrations for training or a predefined task distribution, only non-specific play data. In contrast to prior work that uses reinforcement learning (<dt-cite key="DBLP:journals/corr/abs-1810-05017"></dt-cite>, it does not require any reward function or costly RL phase.
+We evaluated the effectiveness of OCN embeddings on identifying objects through self-supervised online training, a real robotics pointing tasks, and  large-scale synthetic data. 
 
-**Conclusion**&nbsp;&nbsp;
-In this work, we emphasize the benefits of training a single, task-agnostic, goal-conditioned policy on unstructured, unsegmented play data, as opposed to training individual models from scratch for each task. We stress that play data strikes a good balance on the cost-richness tradeoff, compared to expensive expert demonstrations and insufficiently rich scripted collection.
-We introduce a novel self-supervised plan representation learning and goal-conditioned policy learning algorithm, Play-LMP, designed to scale to a difficult behavioral cloning regime with large amount of natural variability in the data. Surprisingly we find that its latent plan space learns to embed task semantics despite never being trained with task labels. Finally we find that models trained on play data are far more robust to perturbation than models trained solely on positive demonstrations, and exhibit natural failure recovery despite not being trained explicitly to do so.  -->
+**Online Object Identification:**
 
+Our self-supervised online training scheme enables to train and to evaluate on unseen objects and scenes. This is of utmost importance for robotic agents to ensure adaptability and robustness in real world scenes. To show the potential of our method for these situations we use OCN embeddings to identify instances of objects across multiple views and over time. 
