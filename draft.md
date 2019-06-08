@@ -234,7 +234,7 @@ Table 6: Attributes classification errors: using attribute labels, we train eith
 <div class="figure">
 <img src="assets/fig/table6.jpg" style="margin: 0; width: 70%;"/>
 <figcaption>
-Table 6a: we find that models that are not pretrained with ImageNet supervision perform worse but still yield reasonable results. This indicates that the approach does not rely on a good initialization to bootstrap itself without labels. Even more surprisingly, when freezing the weights of the ResNet50 base of the model to its random initialization, results degrade but still remain far below chance as well as below the 'ResNet50 embeddings' baseline. Obtaining reasonable results with random weights has already been observed in prior work such as <dt-cite key="jarrett2009best"></dt-cite>, <dt-cite key="saxe2011random"></dt-cite> and <dt-cite key="DBLP:journals/corr/abs-1711-10925"></dt-cite></figcaption>
+Table 6a: we find that models that are not pretrained with ImageNet supervision perform worse but still yield reasonable results. This indicates that the approach does not rely on a good initialization to bootstrap itself without labels. Even more surprisingly, when freezing the weights of the ResNet50 base of the model to its random initialization, results degrade but still remain far below chance as well as below the 'ResNet50 embeddings' baseline. Obtaining reasonable results with random weights has already been observed in prior work such as <dt-cite key="jarrett2009best"></dt-cite>, <dt-cite key="saxe2011random"></dt-cite> and <dt-cite key="DBLP:journals/corr/abs-1711-10925"></dt-cite>.</figcaption>
 </div>
 
 

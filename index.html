@@ -71,7 +71,7 @@
   </div>
   <div class="date">
     <div class="month">Poster</div>
-    <div class="year" style="color: #0000FF;"><a href="https://arxiv.org/pdf/1903.01973.pdf" target="_blank">PDF</a></div> 
+    <div class="year" style="color: #0000FF;"><a href="https://online-objects.github.io/assets/paper/Pirk.et-al-2019-LUV-Poster.pdf" target="_blank">PDF</a></div> 
   </div>  
 </div>
 </dt-byline>
@@ -235,7 +235,7 @@ Table 6: Attributes classification errors: using attribute labels, we train eith
 <div class="figure">
 <img src="assets/fig/table6.jpg" style="margin: 0; width: 70%;"/>
 <figcaption>
-Table 6a: we find that models that are not pretrained with ImageNet supervision perform worse but still yield reasonable results. This indicates that the approach does not rely on a good initialization to bootstrap itself without labels. Even more surprisingly, when freezing the weights of the ResNet50 base of the model to its random initialization, results degrade but still remain far below chance as well as below the 'ResNet50 embeddings' baseline. Obtaining reasonable results with random weights has already been observed in prior work such as <dt-cite key="jarrett2009best"></dt-cite>, <dt-cite key="saxe2011random"></dt-cite> and <dt-cite key="DBLP:journals/corr/abs-1711-10925"></dt-cite></figcaption>
+Table 6a: we find that models that are not pretrained with ImageNet supervision perform worse but still yield reasonable results. This indicates that the approach does not rely on a good initialization to bootstrap itself without labels. Even more surprisingly, when freezing the weights of the ResNet50 base of the model to its random initialization, results degrade but still remain far below chance as well as below the 'ResNet50 embeddings' baseline. Obtaining reasonable results with random weights has already been observed in prior work such as <dt-cite key="jarrett2009best"></dt-cite>, <dt-cite key="saxe2011random"></dt-cite> and <dt-cite key="DBLP:journals/corr/abs-1711-10925"></dt-cite>.</figcaption>
 </div>
 <p><strong>Results:</strong> we quantitatively evaluate our unsupervised models against supervised baselines on the labeled synthetic datasets (train and test) introduced in Section &quot;Synthetic Data Generation&quot;. Note that there is no overlap in object instances between the training and the evaluation set.
 The first take-away is that unsupervised performance closely follows its supervised baseline when trained with metric learning. As expected the cross-entropy/softmax approach performs best and establishes the error lower bound while the ResNet50 baseline are upper-bound results.
@@ -744,6 +744,39 @@ title={A Self-supervised Learning System for Object Detection using Physics Simu
   archivePrefix = {arXiv},
   eprint    = {1801.08985},
   timestamp = {Fri, 02 Feb 2018 14:20:25 +0100},
+}
+
+@inproceedings{jarrett2009best,
+  title={What is the best multi-stage architecture for object recognition?},
+  author={Jarrett, Kevin and Kavukcuoglu, Koray and LeCun, Yann and others},
+  booktitle={Computer Vision, 2009 IEEE 12th International Conference on},
+  pages={2146--2153},
+  year={2009},
+  organization={IEEE}
+}
+
+@inproceedings{saxe2011random,
+  title={On Random Weights and Unsupervised Feature Learning.},
+  author={Saxe, Andrew M and Koh, Pang Wei and Chen, Zhenghao and Bhand, Maneesh and Suresh, Bipin and Ng, Andrew Y},
+  booktitle={ICML},
+  pages={1089--1096},
+  year={2011}
+}
+
+@article{DBLP:journals/corr/abs-1711-10925,
+  author    = {Dmitry Ulyanov and
+               Andrea Vedaldi and
+               Victor S. Lempitsky},
+  title     = {Deep Image Prior},
+  journal   = {CoRR},
+  volume    = {abs/1711.10925},
+  year      = {2017},
+  url       = {http://arxiv.org/abs/1711.10925},
+  archivePrefix = {arXiv},
+  eprint    = {1711.10925},
+  timestamp = {Mon, 13 Aug 2018 16:47:52 +0200},
+  biburl    = {https://dblp.org/rec/bib/journals/corr/abs-1711-10925},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
 </script>
