@@ -1,4 +1,4 @@
-# Learning Latent Plans from Play
+# Online Objects
 
 Markdown from https://github.com/planetrl/planetrl.github.io
 
@@ -18,8 +18,8 @@ This repo contains the source for the article.
 
 ### Instructions to Build and Test
 ```bash
-git clone https://github.com/learning-from-play/learning-from-play.github.io.git
-cd learning-from-play.github.io
+git clone https://github.com/online-objects/online-objects.github.io.git
+cd online-objects.github.io
 npm install
 chmod +x ./bin/*
 ```
